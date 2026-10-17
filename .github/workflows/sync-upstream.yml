@@ -1,0 +1,20 @@
+name: Sync upstream HowToLiveBetter
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Sync upstream
+        uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
+        with:
+          upstream_repository: eternity4719/HowToLiveBetter
+          upstream_branch: main
+          target_branch: main
+          git_user_name: github-actions[bot]
+          git_user_email: github-actions[bot]@users.noreply.github.com
