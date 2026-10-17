@@ -13,8 +13,8 @@ jobs:
       - name: Sync upstream
         uses: aormsby/Fork-Sync-With-Upstream-action@v3.4
         with:
-          upstream_repository: eternity4719/HowToLiveBetter
-          upstream_branch: main
-          target_branch: main
-          git_user_name: github-actions[bot]
-          git_user_email: github-actions[bot]@users.noreply.github.com
+          upstream_sync_repo: eternity4719/HowToLiveBetter
+          upstream_sync_branch: main
+          target_sync_branch: main
+          git_config_user: github-actions[bot]
+          git_config_email: github-actions[bot]@users.noreply.github.com
