@@ -1,0 +1,24 @@
+name: Sync md docs to Coze knowledge
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**/*.md' # 仅docs下md文件改动触发
+  workflow_dispatch:
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    env:
+      COZE_TOKEN: ${{ secrets.COZE_TOKEN }}
+      COZE_KNOWLEDGE_ID: ${{ secrets.COZE_KNOWLEDGE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          pip install requests
+      - name: Run sync script
+        run: python sync_coze_kb.py
