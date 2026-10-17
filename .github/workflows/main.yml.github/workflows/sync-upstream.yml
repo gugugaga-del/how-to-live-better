@@ -1,8 +1,8 @@
 name: Sync upstream HowToLiveBetter
 on:
   schedule:
-    - cron: '0 2 * * *' # UTC时间，北京时间早上10点自动执行
-  workflow_dispatch: # 支持手动点击触发
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 jobs:
   sync:
     runs-on: ubuntu-latest
