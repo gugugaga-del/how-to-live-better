@@ -1,0 +1,88 @@
+name: Sync md to Coze Knowledge
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Sync markdown to Coze knowledge
+        env:
+          COZE_PAT: ${{ secrets.COZE_PAT }}
+          COZE_KNOWLEDGE_ID: ${{ secrets.COZE_KNOWLEDGE_ID }}
+        run: |
+          pip install requests
+          python << 'EOF'
+import requests
+import os
+
+PAT = os.environ["COZE_PAT"]
+KNOWLEDGE_ID = os.environ["COZE_KNOWLEDGE_ID"]
+BASE_URL = "https://api.coze.cn/open_api/v1"
+HEADERS = {"Authorization": f"Bearer {PAT}", "Content-Type": "application/json"}
+
+# 列出知识库所有文档
+def list_all_docs():
+    docs = []
+    page = 1
+    while True:
+        res = requests.post(f"{BASE_URL}/knowledge/document/list", json={
+            "knowledge_id": KNOWLEDGE_ID,
+            "page": page,
+            "page_size": 100
+        }, headers=HEADERS)
+        data = res.json()
+        if data.get("code") !=0:
+            print("列出文档失败",data)
+            break
+        items = data["data"]["documents"]
+        if len(items)==0:
+            break
+        docs.extend(items)
+        page +=1
+    return docs
+
+# 删除旧文档
+def delete_doc(doc_id):
+    res = requests.post(f"{BASE_URL}/knowledge/document/delete",json={
+        "knowledge_id":KNOWLEDGE_ID,
+        "document_id":doc_id
+    },headers=HEADERS)
+    print("删除",doc_id,res.json())
+
+# 上传md文档
+def upload_doc(file_name,text):
+    res = requests.post(f"{BASE_URL}/knowledge/document/create",json={
+        "knowledge_id":KNOWLEDGE_ID,
+        "document_name":file_name,
+        "source_type":3,
+        "text":text
+    },headers=HEADERS)
+    print("上传",file_name,res.json())
+
+if __name__ == "__main__":
+    # 清空旧文档
+    old_docs = list_all_docs()
+    for d in old_docs:
+        delete_doc(d["document_id"])
+
+    # 遍历仓库全部md文件（包含子文件夹）
+    import glob
+    md_files = glob.glob("**/*.md",recursive=True)
+    for fpath in md_files:
+        try:
+            with open(fpath,"r",encoding="utf-8") as f:
+                content = f.read()
+            upload_doc(fpath,content)
+        except Exception as e:
+            print(f"读取失败{fpath}",e)
+EOF
